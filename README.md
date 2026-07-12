@@ -79,7 +79,7 @@ npm run deploy         # build:app → setup:ffmpeg (copies the core into ffmpeg
 
 If the core hasn't been built, `deploy` still works but transcoding is disabled until it exists.
 
-**Still-patent-encumbered lossless codecs (TrueHD/MLP, DTS-HD) and HE-AAC** are excluded. To support
+**Still-patent-encumbered lossless codecs (MLP, DTS-HD) and HE-AAC** are excluded. To support
 them, build a fuller ffmpeg.wasm yourself (`FFMPEG_PROFILE=full` — see the ffmpeg-core README in
 `@matroska-js/player`), accepting the patent obligations, and point the app at it:
 *Administration → MKV Player → **Advanced: load ffmpeg.wasm from an external server*** + the
@@ -116,23 +116,6 @@ LicenseAdminSettings.php` + `src/AdminSettings.vue` (admin UI), and `lib/Control
 LicenseController.php` (`POST /settings/license`, admin-only). The watermark itself is forced by
 `@matroska-js/player` unless it's told the session is licensed; `src/views/player-view.js` passes
 `embedderValidatedLicense` (a trusted vouch, not the key) only on licensed instances.
-
-`lib/Service/LicenseService.php` ships the **production** Ed25519 public key (`PUBLIC_KEY_HEX`) and
-the live `BUY_URL` (`https://matroska.davidschneider.xyz/nextcloud`; `getBuyUrl()` substitutes
-`%NC%` with the instance id) — no placeholders to replace.
-
-**Signing keys (maintainer only).** Keys are signed with the production Ed25519 seed, which is held
-privately (in the license-generator service) and is **not** in this repo. Given the seed,
-`scripts/sign-license.php` mints a key for an instance:
-
-```sh
-# instance id: occ config:system:get instanceid
-#   podman exec -u www-data matroskaplayer-nc php occ config:system:get instanceid
-MKV_LICENSE_SEED_HEX=<production-seed> \
-  php scripts/sign-license.php buyer@example.com <instanceid>
-```
-
-Paste the printed key into the admin License key field; the watermark disappears once it validates.
 
 ## File types
 

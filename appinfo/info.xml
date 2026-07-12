@@ -33,7 +33,7 @@ Video in a codec your browser cannot decode will not play — the app does not c
 **Audio** is more flexible. Browser-native tracks play directly, and several non-native codecs
 (**Vorbis, AC-3, E-AC-3, DTS core**) are transcoded in the browser to AAC-LC or Opus using a
 royalty-free ffmpeg.wasm core that ships with the app and is served from your own server (fully
-offline). **Not supported out of the box:** TrueHD/MLP, DTS-HD and HE-AAC — excluded for
+offline). **Not supported out of the box:** MLP, DTS-HD and HE-AAC — excluded for
 patent/licensing reasons. An administrator can point the app at a self-built, fuller ffmpeg.wasm
 build to add them (note: that makes each viewer's browser contact the configured host).
 

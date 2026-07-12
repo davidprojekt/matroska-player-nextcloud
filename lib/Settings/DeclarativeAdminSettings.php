@@ -36,7 +36,7 @@ class DeclarativeAdminSettings implements IDeclarativeSettingsForm {
 				. 'AAC-LC or Opus — with an audio-only ffmpeg.wasm that ships with this app and is '
 				. 'served from your own server: no external requests. It is LGPL (AGPL-compatible); '
 				. 'the lossy codecs are royalty-free or have expired core patents, except E-AC-3 '
-				. '(newer — check your jurisdiction). TrueHD/DTS-HD/HE-AAC are not included; to add '
+				. '(newer — check your jurisdiction). MLP/DTS-HD/HE-AAC are not included; to add '
 				. 'them, build a fuller ffmpeg.wasm yourself and enable the advanced option below '
 				. '(see the app README).'
 			),
