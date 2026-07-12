@@ -8,20 +8,22 @@
   "scripts": {
     "dev": "vite --mode development build --watch",
     "clean": "rm -rf js css dist assets",
-    "build": "npm run clean && bash -c 'cd ../mkv-player && npm run build' && vite build",
+    "build": "npm run build:app",
     "build:app": "npm run clean && vite build",
-    "setup:ffmpeg": "FFMPEG_OUT_DIR=ffmpeg node ../player-lib/scripts/setup-ffmpeg-core.mjs",
+    "build:ffmpeg": "bash node_modules/@matroska-js/player/ffmpeg-core/build.sh",
+    "setup:ffmpeg": "FFMPEG_OUT_DIR=ffmpeg node node_modules/@matroska-js/player/scripts/setup-ffmpeg-core.mjs",
     "assemble": "bash scripts/assemble.sh",
     "deploy": "npm run build:app && npm run setup:ffmpeg && npm run assemble"
   },
   "dependencies": {
-    "@matroska-js/player": "file:../player-lib"
+    "@matroska-js/player": "^0.1.0"
   },
   "devDependencies": {
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/router": "^3.1.0",
     "@nextcloud/vite-config": "^2.5.4",
     "playwright-core": "^1.61.1",
+    "typescript": "^5.9.3",
     "vite": "^7.3.6",
     "vue": "^3.5.39"
   }

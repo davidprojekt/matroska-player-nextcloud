@@ -60,7 +60,9 @@ byproduct.
     <author>David Schneider</author>
     <namespace>MkvPlayer</namespace>
     <category>multimedia</category>
-    <bugs>https://github.com/davidschneider/play-mkv.js/issues</bugs>
+    <website>https://github.com/davidprojekt/matroska-player-nextcloud</website>
+    <bugs>https://github.com/davidprojekt/matroska-player-nextcloud/issues</bugs>
+    <repository type="git">https://github.com/davidprojekt/matroska-player-nextcloud.git</repository>
     <dependencies>
         <nextcloud min-version="28" max-version="34"/>
     </dependencies>

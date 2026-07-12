@@ -4,7 +4,8 @@
 /css
 /dist
 /assets
-# Bundled ffmpeg.wasm core, copied from player-lib's build (npm run setup:ffmpeg); not committed.
+# Bundled ffmpeg.wasm core, built from @matroska-js/player's recipe (npm run build:ffmpeg) and
+# copied in by npm run setup:ffmpeg; a build artifact — never committed.
 /ffmpeg
 # Staged deployable app for the dev container (scripts/assemble.sh).
 /deploy

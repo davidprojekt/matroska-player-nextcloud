@@ -3,8 +3,9 @@
 Plays Matroska `.mkv` / `.mka` files directly in Nextcloud's built-in **Viewer** — in-browser,
 offline, with no server-side transcoding. The player itself (WASM MKV→fMP4 remux + MSE + video.js
 controls, libass/PGS subtitles, optional ffmpeg.wasm audio transcoding, corner watermark) is the
-`@matroska-js/player` library (`../player-lib`); this app wraps it in a Viewer handler, bundles a
-royalty-free ffmpeg.wasm core served from the instance, and adds admin settings.
+published [`@matroska-js/player`](https://www.npmjs.com/package/@matroska-js/player) library; this
+app wraps it in a Viewer handler, serves a royalty-free ffmpeg.wasm core from the instance, and adds
+admin settings.
 
 The app is **freemium**: free and fully functional, with a small corner watermark that an optional
 paid license removes. See [Licensing & watermark](#licensing--watermark).
@@ -16,14 +17,15 @@ npm install
 npm run deploy      # = build:app (Vite) + setup:ffmpeg (copy the core) + assemble (stage deploy/matroskaplayer)
 ```
 
-`npm run build` additionally rebuilds the Rust `mkv-player` WASM first; use it when that changed.
+The playback engine (the WASM remuxer and player UI) comes entirely from the `@matroska-js/player`
+npm package pulled in by `npm install` — there is no Rust/WASM build in this repo.
 
 The Vite build uses `@nextcloud/vite-config` with two required overrides for this wasm/worker
 library (see `vite.config.js`): `nodePolyfills:false` and a relative `renderBuiltUrl` (so the
 jassub/ffmpeg workers don't reference `window.OC`, which doesn't exist in a Worker). It emits **two
-JS entries** — `matroskaplayer-main` (the Viewer handler) and `matroskaplayer-admin-settings` (the license
-settings Vue app). Output lands in the app root — `js/` (entries), `dist/` (wasm), `assets/`
-(workers), `css/`.
+JS entries** — `matroskaplayer-main` (the Viewer handler) and `matroskaplayer-admin-settings` (the
+license settings Vue app). Output lands in the app root — `js/` (entries), `dist/` (wasm),
+`assets/` (workers), `css/`.
 
 ## Local dev instance (podman)
 
@@ -50,7 +52,7 @@ apps directory" because the writable `custom_apps` path isn't writable by `www-d
 cleanly first and `podman cp` the app in (`dev/sync.sh`). Only the built assets + PHP are staged
 (`scripts/assemble.sh`) — never `node_modules`.
 
-Teardown: `podman-compose down` (add `-v` / `podman volume rm player-nextcloud_nextcloud_html` to
+Teardown: `podman-compose down` (add `-v` / `podman volume rm matroskaplayer-nc_nextcloud_html` to
 wipe the instance).
 
 ## Audio transcoding (offline)
@@ -59,26 +61,27 @@ Matroska video always plays via in-browser remuxing. Audio codecs the browser ca
 in the remuxed MP4 (Vorbis, AC-3, E-AC-3, DTS core, …) are transcoded to **AAC-LC** (preferred —
 universal, incl. Safari) or **Opus** with ffmpeg.wasm.
 
-The app **bundles an audio-only ffmpeg.wasm core and serves it from your own server**: no external
-requests, works offline. It is **LGPL / AGPL-compatible** (all native/BSD codecs, no x264/x265). It
-decodes Vorbis/Opus/FLAC/ALAC/PCM plus AAC-LC, AC-3, E-AC-3 and DTS core, and encodes AAC-LC/Opus.
-The lossy codecs are royalty-free or have expired core patents (AAC-LC, AC-3, E-AC-3, DTS core).
-Transcoding is on by default; the bundled `ffmpeg/LICENSE` and `ffmpeg/SOURCE.md` (the LGPL source
-offer) ship alongside the core.
+The app **serves an audio-only ffmpeg.wasm core from your own server**: no external requests, works
+offline. It is **LGPL / AGPL-compatible** (all native/BSD codecs, no x264/x265). It decodes
+Vorbis/Opus/FLAC/ALAC/PCM plus AAC-LC, AC-3, E-AC-3 and DTS core, and encodes AAC-LC/Opus. The lossy
+codecs are royalty-free or have expired core patents (AAC-LC, AC-3, E-AC-3, DTS core). Transcoding
+is on by default; the bundled `ffmpeg/LICENSE` and `ffmpeg/SOURCE.md` (the LGPL source offer) are
+served alongside the core.
 
-The core is **not committed** — it's compiled from source (see `../player-lib/ffmpeg-core/`) and
-copied in at deploy time. Build order:
+The core is **not committed** — it is compiled from source using the build recipe that ships inside
+`@matroska-js/player` (installed under `node_modules/@matroska-js/player/ffmpeg-core/`) and copied
+in at deploy time. Build order:
 
 ```sh
-(cd ../player-lib && npm run build:ffmpeg)   # compile the core (Docker; slow once)
-npm run deploy                                # build:app → setup:ffmpeg (copies the core) → assemble
+npm run build:ffmpeg   # compile the core from @matroska-js/player's recipe (podman/Docker; slow once)
+npm run deploy         # build:app → setup:ffmpeg (copies the core into ffmpeg/) → assemble
 ```
 
 If the core hasn't been built, `deploy` still works but transcoding is disabled until it exists.
 
 **Still-patent-encumbered lossless codecs (TrueHD/MLP, DTS-HD) and HE-AAC** are excluded. To support
-them, build a fuller ffmpeg.wasm yourself (`FFMPEG_PROFILE=full` — see
-`player-lib/ffmpeg-core/README.md`), accepting the patent obligations, and point the app at it:
+them, build a fuller ffmpeg.wasm yourself (`FFMPEG_PROFILE=full` — see the ffmpeg-core README in
+`@matroska-js/player`), accepting the patent obligations, and point the app at it:
 *Administration → MKV Player → **Advanced: load ffmpeg.wasm from an external server*** + the
 core/wasm URLs. ⚠️ That external option makes each viewer's browser contact the third-party host
 (privacy: exposes their IP); it's off by default. The app adds the configured origin to the CSP
@@ -110,25 +113,23 @@ a **Buy** link that opens the purchase page with this instance's id appended.
 
 Implemented in `lib/Service/LicenseService.php` (validation + buy URL), `lib/Settings/
 LicenseAdminSettings.php` + `src/AdminSettings.vue` (admin UI), and `lib/Controller/
-LicenseController.php` (`POST /settings/license`, admin-only). The watermark itself is a
-forced by `@matroska-js/player` unless it's told the session is licensed; `src/views/player-view.js`
-passes `embedderValidatedLicense` (a trusted vouch, not the key) only on licensed instances.
+LicenseController.php` (`POST /settings/license`, admin-only). The watermark itself is forced by
+`@matroska-js/player` unless it's told the session is licensed; `src/views/player-view.js` passes
+`embedderValidatedLicense` (a trusted vouch, not the key) only on licensed instances.
 
-**Before shipping, replace the placeholder public key** in `lib/Service/LicenseService.php`:
+`lib/Service/LicenseService.php` ships the **production** Ed25519 public key (`PUBLIC_KEY_HEX`) and
+the live `BUY_URL` (`https://matroska.davidschneider.xyz/nextcloud`; `getBuyUrl()` substitutes
+`%NC%` with the instance id) — no placeholders to replace.
 
-- `PUBLIC_KEY_HEX` — swap the generated **test** public key for your production one.
-
-(`BUY_URL` is already set to the live landing page, `https://matroska.davidschneider.xyz/nextcloud`;
-`getBuyUrl()` substitutes `%NC%` with the instance id.)
-
-**Minting test keys** (dev only). The test keypair lives in `dev/license-test-keys.txt`
-(gitignored); `scripts/sign-license.php` signs a key with the private seed:
+**Signing keys (maintainer only).** Keys are signed with the production Ed25519 seed, which is held
+privately (in the license-generator service) and is **not** in this repo. Given the seed,
+`scripts/sign-license.php` mints a key for an instance:
 
 ```sh
 # instance id: occ config:system:get instanceid
 #   podman exec -u www-data matroskaplayer-nc php occ config:system:get instanceid
-MKV_LICENSE_SEED_HEX=<seed-from-dev/license-test-keys.txt> \
-  php scripts/sign-license.php test@example.com <instanceid>
+MKV_LICENSE_SEED_HEX=<production-seed> \
+  php scripts/sign-license.php buyer@example.com <instanceid>
 ```
 
 Paste the printed key into the admin License key field; the watermark disappears once it validates.
@@ -141,3 +142,8 @@ Viewer matches handlers by MIME only, so an admin would need to map `.mka` → `
 (custom `config/mimetypemapping.json` + `occ maintenance:mimetype:update-db`). The handler already
 registers `audio/x-matroska`, so it will work once that mapping exists — but this is a video player,
 so audio-only playback is just a byproduct.
+
+## License
+
+AGPL-3.0-only. © David Schneider. A separate commercial license (watermark-free / without the
+AGPL's source-disclosure obligations) is available — contact **licensing@davidschneider.xyz**.
