@@ -8,7 +8,7 @@ app wraps it in a Viewer handler, serves a royalty-free ffmpeg.wasm core from th
 admin settings.
 
 The app is **freemium**: free and fully functional, with a small corner watermark that an optional
-paid license removes. See [Licensing & watermark](#licensing--watermark).
+paid license can remove in the future. See [Licensing & watermark](#licensing--watermark).
 
 ## Build
 
@@ -95,7 +95,7 @@ core/wasm URLs. ⚠️ That external option makes each viewer's browser contact 
 
 The player shows a small watermark in the bottom-right corner of the video. It stays visible but
 fades and lifts above the control bar with the player UI (pure CSS off the skin's control-visibility
-state; no per-frame JS). A **valid license hides the watermark**.
+state; no per-frame JS). A **valid key hides the watermark**.
 
 **Admin settings** (*Administration → MKV Player*) add, alongside the ffmpeg options, a custom Vue
 section with a masked **License key** field, a **Save & validate** action that shows the result, and
@@ -128,5 +128,8 @@ so audio-only playback is just a byproduct.
 
 ## License
 
-AGPL-3.0-only. © David Schneider. A separate commercial license (watermark-free / without the
-AGPL's source-disclosure obligations) is available — contact **licensing@davidschneider.xyz**.
+AGPL-3.0-only. © David Schneider.
+
+We are currently preparing a commercial licensing option for users who require terms different from the AGPL-3.0-only license. Commercial licenses are planned to become available in early 2027.
+
+If you are interested in an enterprise or commercial license before then, please contact [licensing@davidschneider.xyz](mailto:licensing@davidschneider.xyz) to get in contact and join the waitlist.
